@@ -1,8 +1,31 @@
-async function foo() {
-    const response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
-    const user = await response.json();
-    console.log(user);
-    return user; // OR return response.json();
+function nativePromise() {
+    fetch('https://jsonplaceholder.typicode.com/todos/1')
+        .then(response => response.json())
+        .catch(error => console.log(error))
+        .then(user => {
+            fetch(`https://jsonplaceholder.typicode.com/posts/${user.userId}/comments`)
+                .then(response => response.json())
+                .catch(error => console.log(error))
+                .then(comments => {
+                    console.log('user', user);
+                    console.log('comments', comments);
+                })
+                .catch(error => console.log(error));
+        })
+        .catch(error => console.log(error));
+}
+
+async function asyncAwait() {
+    try {
+        let response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
+        const user = await response.json();
+        response = await fetch(`https://jsonplaceholder.typicode.com/posts/${user.userId}/comments`);
+        const comments = await response.json();
+        console.log('user', user);
+        console.log('comments', comments);
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 async function foo1() {
@@ -30,7 +53,7 @@ function syncFunction() {
     foo3();
     console.log('After async method calling');
     //As JS is a single threaded, execution will continue in syncFunction
-    //It won't wait for completion of foo method as syncFunction is a regular method
+    //It won't wait for completion of foo3 method as syncFunction is a regular method
 }
 syncFunction();
 
@@ -42,6 +65,23 @@ async function asyncFunction() {
     console.log('After async method calling');
 }
 asyncFunction();
+
+async function foo() {
+    console.log('foo execution started');
+    const response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
+    //As await used, JS will wait until promise won't settled
+    const user = await response.json();
+    console.log(user);
+    console.log('foo execution completed');
+}
+
+function asyncAndSync() {
+    console.log('Calling foo method');
+    foo();
+    console.log('Called foo method');
+    console.log('Normal execution continue and foo execution resume once promise is settled');
+}
+asyncAndSync();
 
 /**
  * Using async/await with then
